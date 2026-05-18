@@ -1,0 +1,336 @@
+// Prisma schema for MORIKAWA FERRE+ - Inventory Management System
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  ADMIN
+  ALMACENISTA
+  VENDEDOR
+  CLIENTE
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+/// User model - represents system users with role-based access
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(ALMACENISTA)
+  isActive  Boolean  @default(true)
+
+  // Relations
+  auditLogs AuditLog[]
+  sales     Sale[]
+  movements InventoryMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// Category model - product categories for organization
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+
+  // Relations
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+/// Product model - core product entity with inventory tracking
+model Product {
+  id               String   @id @default(cuid())
+  code             String   @unique /// Auto-generated or manual unique code
+  name             String
+  description      String?
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  /// Base unit of measurement (e.g., "unidad", "kilo", "metro", "litro")
+  unitBase         String
+  
+  /// Whether product can be sold in fractions (decimals)
+  isFractionable   Boolean  @default(false)
+  
+  /// Minimum stock for alert (in base unit)
+  stockMin         Int      @default(5)
+  
+  /// Current stock (always in base unit)
+  stockCurrent     Float    @default(0)
+  
+  /// Weighted average cost price (calculated automatically)
+  costPriceAvg     Float    @default(0)
+  
+  /// Total stock value (stockCurrent × costPriceAvg)
+  totalStockValue  Float    @default(0)
+  
+  /// Warehouse location (e.g., "Estante A1", "Pasillo B3")
+  location         String?
+  imageUrl         String?
+
+  // Relations
+  unitConversions UnitConversion[]
+  productPrices   ProductPrice[]
+  movements       InventoryMovement[]
+  saleItems       SaleItem[]
+  cartItems       CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([code])
+  @@map("products")
+}
+
+/// UnitConversion model - defines conversion ratios for alternative units
+/// Example: 1 caja de clavos = 1000 unidades
+model UnitConversion {
+  id             String  @id @default(cuid())
+  productId      String
+  product        Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  /// Alternative unit name (e.g., "caja", "docena", "paquete")
+  unitName       String
+  
+  /// Quantity in base unit (e.g., 1 caja = 1000 base units)
+  quantityInBase Float
+  
+  /// Whether this is the default display unit
+  isDefault      Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, unitName])
+  @@index([productId])
+  @@map("unit_conversions")
+}
+
+/// CustomerType model - different client categories with special pricing
+model CustomerType {
+  id   String @id @default(cuid())
+  name String @unique /// MINORISTA, MAYORISTA, CONSTRUCTOR, etc.
+
+  // Relations
+  productPrices ProductPrice[]
+  sales         Sale[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customer_types")
+}
+
+/// ProductPrice model - pricing by customer type
+model ProductPrice {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerTypeId String
+  customerType   CustomerType @relation(fields: [customerTypeId], references: [id], onDelete: Cascade)
+  
+  /// Sale price for this customer type
+  price          Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, customerTypeId])
+  @@index([productId])
+  @@index([customerTypeId])
+  @@map("product_prices")
+}
+
+/// InventoryMovement model - tracks all stock movements
+/// CRITICAL: This is where weighted average cost is calculated
+model InventoryMovement {
+  id            String       @id @default(cuid())
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  type          MovementType /// ENTRY or EXIT
+  
+  /// Movement subtype: "compra", "venta", "merma", "ajuste", "traslado", "salida_punto_venta", etc.
+  subType       String
+  
+  /// Quantity used in the unit selected by user
+  quantity      Float
+  
+  /// Converted to base unit for storage
+  quantityInBase Float
+  
+  /// Unit used in this movement (may not be base unit)
+  unitUsed      String
+  
+  /// Cost per unit (for entries) or sale price (for exits)
+  unitPrice     Float?
+  
+  /// Document number (invoice, receipt, etc.)
+  documentNumber String?
+  
+  /// Reason or observation
+  reason        String?
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  
+  /// Customer name (for sales to non-registered customers)
+  customerName  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("inventory_movements")
+}
+
+/// Sale model - represents a complete sales transaction (POS)
+model Sale {
+  id             String   @id @default(cuid())
+  saleNumber     String   @unique /// Auto-generated sale number
+  customerTypeId String
+  customerType   CustomerType @relation(fields: [customerTypeId], references: [id])
+  
+  /// Customer name (for non-registered customers)
+  customerName   String?
+  
+  /// Total amount before discount
+  total          Float
+  
+  /// Discount applied
+  discount       Float    @default(0)
+  
+  /// Payment method: "cash", "card", "transfer"
+  paymentMethod  String
+  
+  userId         String
+  user           User @relation(fields: [userId], references: [id])
+  
+  // Relations
+  items          SaleItem[]
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([customerTypeId])
+  @@map("sales")
+}
+
+/// SaleItem model - individual items in a sale
+model SaleItem {
+  id        String @id @default(cuid())
+  saleId    String
+  sale      Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  
+  /// Quantity sold
+  quantity  Float
+  
+  /// Unit price at time of sale
+  unitPrice Float
+  
+  /// Line total
+  subtotal  Float
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
+}
+
+/// Cart model - shopping cart for public store customers
+model Cart {
+  id         String   @id @default(cuid())
+  sessionId  String   @unique /// Session identifier for unauthenticated customers
+  
+  /// Total amount in cart
+  subtotal   Float    @default(0)
+  
+  /// Relations
+  items      CartItem[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sessionId])
+  @@map("carts")
+}
+
+/// CartItem model - individual items in a shopping cart
+model CartItem {
+  id        String @id @default(cuid())
+  cartId    String
+  cart      Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  /// Quantity in cart
+  quantity  Float
+  
+  /// Price at time of adding to cart
+  price     Float
+  
+  /// Line total
+  subtotal  Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+/// AuditLog model - tracks all system actions for compliance
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// Action type: CREATE_PRODUCT, STOCK_ENTRY, STOCK_EXIT, UPDATE_PRICE, DELETE_PRODUCT, etc.
+  actionType String
+  
+  /// Detailed action information (before/after data)
+  details   Json
+  
+  /// IP address of user (for security audit)
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
