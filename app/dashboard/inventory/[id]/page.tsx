@@ -88,8 +88,8 @@ export default async function ProductDetailPage({
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-slate-600">Stock Actual</p>
-            <p className="text-3xl font-bold text-slate-900 mt-1">
+            <p className="text-sm text-slate-500">Stock Actual</p>
+            <p className="text-3xl font-bold text-slate-300 mt-1">
               {formatNumber(product.stockCurrent)}
             </p>
           </CardContent>
@@ -97,8 +97,8 @@ export default async function ProductDetailPage({
 
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-slate-600">Stock Mínimo</p>
-            <p className="text-3xl font-bold text-slate-900 mt-1">
+            <p className="text-sm text-slate-500">Stock Mínimo</p>
+            <p className="text-3xl font-bold text-slate-300 mt-1">
               {formatNumber(product.stockMin)}
             </p>
           </CardContent>
@@ -106,8 +106,8 @@ export default async function ProductDetailPage({
 
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-slate-600">Costo Promedio</p>
-            <p className="text-3xl font-bold text-slate-900 mt-1">
+            <p className="text-sm text-slate-500">Costo Promedio</p>
+            <p className="text-3xl font-bold text-slate-300 mt-1">
               {formatCurrency(product.costPriceAvg)}
             </p>
           </CardContent>
@@ -115,8 +115,8 @@ export default async function ProductDetailPage({
 
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-slate-600">Valor Total</p>
-            <p className="text-3xl font-bold text-green-600 mt-1">
+            <p className="text-sm text-slate-500">Valor Total</p>
+            <p className="text-3xl font-bold text-green-300 mt-1">
               {formatCurrency(totalValue)}
             </p>
           </CardContent>
@@ -132,19 +132,19 @@ export default async function ProductDetailPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-xs text-slate-600 uppercase font-bold">
+                <p className="text-xs text-slate-500 uppercase font-bold">
                   Categoría
                 </p>
-                <p className="text-sm font-medium text-slate-900 mt-1">
+                <p className="text-sm font-medium text-slate-300 mt-1">
                   {product.category.name}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs text-slate-600 uppercase font-bold">
+                <p className="text-xs text-slate-500 uppercase font-bold">
                   Descripción
                 </p>
-                <p className="text-sm text-slate-900 mt-1">
+                <p className="text-sm text-slate-300 mt-1">
                   {product.description || "-"}
                 </p>
               </div>
@@ -253,7 +253,7 @@ export default async function ProductDetailPage({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
+                  <tr className="border-b border-slate-800 text-slate-400">
                     <th className="text-left py-3 px-4 font-semibold">Fecha</th>
                     <th className="text-left py-3 px-4 font-semibold">Tipo</th>
                     <th className="text-right py-3 px-4 font-semibold">
@@ -295,15 +295,15 @@ export default async function ProductDetailPage({
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right font-medium">
-                          {formatNumber(movement.quantityBase)}
+                          {formatNumber(movement.quantityInBase)}
                         </td>
                         <td className="py-3 px-4 text-right">
-                          {formatNumber(movement.resultingStock)}
+                          {formatNumber(movement.quantity)}
                         </td>
                         <td className="py-3 px-4 text-sm">
                           {movement.user.name}
                         </td>
-                        <td className="py-3 px-4 text-xs text-slate-600">
+                        <td className="py-3 px-4 text-xs text-slate-200">
                           {movement.documentNumber || "-"}
                         </td>
                       </tr>
@@ -329,7 +329,7 @@ export default async function ProductDetailPage({
           <div className="grid grid-cols-3 gap-4">
             <div className="p-4 border border-slate-200 rounded-lg">
               <p className="text-sm text-slate-600">Movimientos Totales</p>
-              <p className="text-2xl font-bold text-slate-900 mt-2">
+              <p className="text-2xl font-bold text-slate-300 mt-2">
                 {lastMonthMovements.length}
               </p>
             </div>

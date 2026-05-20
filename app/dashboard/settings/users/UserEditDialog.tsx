@@ -10,9 +10,14 @@ import { updateUser } from "@/actions/user.actions";
 interface UserEditDialogProps {
   user: any;
   onSuccess: () => void;
+  disabled?: boolean;
 }
 
-export function UserEditDialog({ user, onSuccess }: UserEditDialogProps) {
+export function UserEditDialog({
+  user,
+  onSuccess,
+  disabled = false,
+}: UserEditDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({

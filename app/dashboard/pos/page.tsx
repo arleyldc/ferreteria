@@ -131,6 +131,7 @@ export default function POSPage() {
       setCart([]);
       setNotes("");
       alert("✅ Venta registrada exitosamente");
+      fetchProducts();
       router.refresh();
     } catch (err: any) {
       alert("Error: " + err.message);

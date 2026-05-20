@@ -150,6 +150,7 @@ async function main() {
           costPriceAvg: 50,
           totalStockValue: 100000,
           location: "Estante A1",
+          price: 100,
         },
       }),
       prisma.product.create({
@@ -165,6 +166,7 @@ async function main() {
           costPriceAvg: 30,
           totalStockValue: 150000,
           location: "Estante A2",
+          price: 100,
         },
       }),
       // Herramientas
@@ -181,6 +183,7 @@ async function main() {
           costPriceAvg: 25000,
           totalStockValue: 500000,
           location: "Estante B1",
+          price: 100,
         },
       }),
       // Tubería
@@ -197,6 +200,7 @@ async function main() {
           costPriceAvg: 8000,
           totalStockValue: 1200000,
           location: "Pasillo C1",
+          price: 100,
         },
       }),
       // Materiales Eléctricos
@@ -213,6 +217,7 @@ async function main() {
           costPriceAvg: 400,
           totalStockValue: 200000,
           location: "Pasillo D1",
+          price: 100,
         },
       }),
       // Pintura
@@ -229,6 +234,7 @@ async function main() {
           costPriceAvg: 12000,
           totalStockValue: 600000,
           location: "Estante E1",
+          price: 100,
         },
       }),
     ]);

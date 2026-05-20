@@ -59,6 +59,7 @@ export default function UsersPage() {
       </span>
     );
   };
+  console.log(users);
 
   return (
     <div className="space-y-6">
@@ -143,7 +144,12 @@ export default function UsersPage() {
                       {/* ACCIONES */}
                       <td className="py-3 px-4 text-center space-x-2">
                         <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition">
-                          <UserEditDialog user={user} onSuccess={loadUsers} />
+                          <UserEditDialog
+                            user={user}
+                            onSuccess={loadUsers}
+                            disabled={user.role === "CLIENTE"}
+                          />
+
                           {user.isActive ? (
                             <UserDeleteButton
                               userId={user.id}

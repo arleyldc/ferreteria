@@ -72,6 +72,7 @@ model Product {
   name             String
   description      String?
   categoryId       String
+  price            Float    @default(0)
   category         Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   
   /// Base unit of measurement (e.g., "unidad", "kilo", "metro", "litro")

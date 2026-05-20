@@ -197,7 +197,7 @@ export default async function ProductsPage() {
                       </td>
 
                       <td className="py-3 px-4 text-right font-bold text-green-400 group-hover:text-blue-400 transition">
-                        {formatCurrency(totalValue)}
+                        {formatCurrency(product.price)}
                       </td>
 
                       <td className="py-3 px-4 text-center space-x-2">
@@ -205,12 +205,12 @@ export default async function ProductsPage() {
                           href={`/dashboard/products/edit/${product.id}`}
                           className="text-blue-400 hover:text-blue-300 font-medium text-sm"
                         >
-                          Editar
+                          Editar / Eliminar
                         </Link>
 
-                        <button className="text-red-400 hover:text-red-300 font-medium text-sm">
+                        {/* <button className="text-red-400 hover:text-red-300 font-medium text-sm">
                           Eliminar
-                        </button>
+                        </button> */}
                       </td>
                     </tr>
                   );

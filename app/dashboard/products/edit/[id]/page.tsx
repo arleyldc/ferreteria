@@ -45,6 +45,9 @@ export default function EditProductPage() {
       setProduct(data.data);
       setImageUrl(data.data.imageUrl || undefined);
       setImagePreview(data.data.imageUrl || undefined);
+      setCost(data.data.costPriceAvg || 0);
+      setShippingCost(0);
+      setManualPrice(data.data.price || null);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -96,6 +99,11 @@ export default function EditProductPage() {
     }
   };
 
+  const [cost, setCost] = useState(0);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [manualPrice, setManualPrice] = useState<number | null>(null);
+  const autoPrice = (cost + shippingCost) * 1.4;
+  const price = manualPrice ?? autoPrice;
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -112,6 +120,7 @@ export default function EditProductPage() {
         stockMin: parseFloat(formData.get("minimumStock") as string) || 0,
         stockCurrent: parseFloat(formData.get("stockCurrent") as string) || 0,
         isFractionable: formData.get("fractionalQuantity") === "on",
+        price,
         imageUrl,
       });
 
@@ -181,7 +190,7 @@ export default function EditProductPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Código (No editable)
                 </label>
                 <input
@@ -194,14 +203,14 @@ export default function EditProductPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Nombre *
                 </label>
                 <input
                   type="text"
                   name="name"
                   required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 text-slate-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Ej: Clavo 2 pulgadas"
                   defaultValue={product?.name || ""}
                 />
@@ -209,13 +218,13 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Categoría *
               </label>
               <select
                 name="categoryId"
                 required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 border border-slate-300 text-slate-600 rounded-lg focus:outline-none focus:border-blue-500"
                 defaultValue={product?.categoryId || ""}
               >
                 <option value="">Selecciona una categoría</option>
@@ -228,12 +237,12 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Descripción
               </label>
               <textarea
                 name="description"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 border border-slate-300 text-slate-600 rounded-lg focus:outline-none focus:border-blue-500"
                 rows={3}
                 placeholder="Descripción detallada del producto (opcional)"
                 defaultValue={product?.description || ""}
@@ -241,7 +250,7 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Imagen del producto
               </label>
               <input
@@ -270,19 +279,19 @@ export default function EditProductPage() {
             </div>
 
             <div className="border-t border-slate-200 pt-6">
-              <h3 className="font-semibold text-slate-900 mb-4">
+              <h3 className="font-semibold text-slate-300 mb-4">
                 Stock y Unidades
               </h3>
 
               <div className="grid grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Unidad Base (No editable)
                   </label>
                   <input
                     type="text"
                     disabled
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500"
+                    className="w-full px-3 text-slate-600 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500"
                     placeholder="UNIDAD"
                     defaultValue={product?.baseUnit || ""}
                   />{" "}
@@ -294,7 +303,7 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Stock Actual *
                   </label>
                   <input
@@ -302,7 +311,7 @@ export default function EditProductPage() {
                     name="stockCurrent"
                     required
                     step="0.01"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full text-slate-600 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
                     placeholder="0"
                     defaultValue={product?.stockCurrent || 0}
                   />
@@ -312,7 +321,7 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Stock Mínimo *
                   </label>
                   <input
@@ -320,7 +329,7 @@ export default function EditProductPage() {
                     name="minimumStock"
                     required
                     step="0.01"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full text-slate-600 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
                     placeholder="0"
                     defaultValue={product?.minimumStock || 0}
                   />
@@ -335,7 +344,7 @@ export default function EditProductPage() {
                     className="w-4 h-4 border border-slate-300 rounded focus:outline-none"
                     defaultChecked={product?.isFractionable}
                   />
-                  <span className="text-sm text-slate-900">
+                  <span className="text-sm text-slate-300">
                     Permite cantidades fraccionadas (decimales)
                   </span>
                 </label>
@@ -343,35 +352,68 @@ export default function EditProductPage() {
             </div>
 
             <div className="border-t border-slate-200 pt-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Costos</h3>
+              <h3 className="font-semibold text-slate-300 mb-4">Costos</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-3 gap-6">
+                {/* COSTO */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">
-                    Costo Promedio Ponderado (No editable)
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Costo Unitario *
                   </label>
+
                   <input
                     type="number"
-                    disabled
+                    name="costPriceAvg"
+                    min={0}
+                    required
                     step="0.01"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500"
-                    placeholder="0.00"
-                    defaultValue={product?.costPriceAvg?.toFixed(2) || "0.00"}
+                    value={cost}
+                    onChange={(e) => {
+                      setCost(parseFloat(e.target.value) || 0);
+                      setManualPrice(null);
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 text-slate-900 rounded-lg focus:outline-none focus:border-blue-500"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Se calcula automáticamente
-                  </p>
                 </div>
 
+                {/* ENVÍO */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">
-                    Notas de Costo
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Costo Envío
                   </label>
+
                   <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="Observaciones sobre el costo"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={shippingCost}
+                    onChange={(e) => {
+                      setShippingCost(parseFloat(e.target.value) || 0);
+                      setManualPrice(null);
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 text-slate-900 rounded-lg focus:outline-none focus:border-blue-500"
                   />
+                </div>
+
+                {/* PRECIO VENTA */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Precio de Venta *
+                  </label>
+
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) =>
+                      setManualPrice(parseFloat(e.target.value) || 0)
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 text-slate-900 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+
+                  <p className="text-xs text-slate-500 mt-1">
+                    Auto: (Costo + Envío) × 1.40
+                  </p>
                 </div>
               </div>
             </div>
@@ -386,7 +428,7 @@ export default function EditProductPage() {
               </button>
               <Link
                 href="/dashboard/products"
-                className="flex-1 px-4 py-2 border border-slate-300 text-slate-900 rounded-lg hover:bg-slate-50 font-medium text-center"
+                className="flex-1 px-4 py-2 border border-slate-300 text-slate-300 rounded-lg hover:bg-slate-50 font-medium text-center"
               >
                 Cancelar
               </Link>

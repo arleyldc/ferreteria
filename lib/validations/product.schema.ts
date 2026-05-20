@@ -23,6 +23,7 @@ export const productSchema = z.object({
     .optional(),
   location: z.string().optional(),
   imageUrl: z.string().url("Image URL must be valid").optional(),
+  price: z.coerce.number().min(0, "Price must be positive"),
 });
 
 export type ProductInput = z.infer<typeof productSchema>;

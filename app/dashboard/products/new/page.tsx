@@ -73,7 +73,12 @@ export default function NewProductPage() {
       setUploadingImage(false);
     }
   };
+  const [cost, setCost] = useState(0);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [manualPrice, setManualPrice] = useState<number | null>(null);
 
+  const autoPrice = (cost + shippingCost) * 1.4;
+  const price = manualPrice ?? autoPrice;
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -91,6 +96,7 @@ export default function NewProductPage() {
         stockMin: parseFloat(formData.get("minimumStock") as string) || 0,
         stockCurrent: parseFloat(formData.get("stockCurrent") as string) || 0,
         costPriceAvg: parseFloat(formData.get("costPriceAvg") as string) || 0,
+        price,
         imageUrl,
       });
 
@@ -280,36 +286,72 @@ export default function NewProductPage() {
             <div className="border-t border-slate-200 pt-6">
               <h3 className="font-semibold text-slate-300 mb-4">Costos</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-3 gap-6">
+                {/* COSTO */}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
                     Costo Unitario *
                   </label>
+
                   <input
                     type="number"
                     name="costPriceAvg"
                     min={0}
                     required
                     step="0.01"
+                    value={cost}
+                    onChange={(e) => setCost(parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-slate-300 text-slate-900 rounded-lg focus:outline-none focus:border-blue-500"
                     placeholder="0.00"
                   />
+
                   <p className="text-xs text-slate-500 mt-1">
-                    Costo promedio ponderado
+                    Costo base del producto
                   </p>
                 </div>
 
+                {/* ENVÍO */}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
                     Costo Envío (Opcional)
                   </label>
+
                   <input
                     type="number"
-                    step="0.01"
                     min={0}
+                    step="0.01"
+                    value={shippingCost}
+                    onChange={(e) =>
+                      setShippingCost(parseFloat(e.target.value) || 0)
+                    }
                     className="w-full px-3 py-2 border border-slate-300 text-slate-900 rounded-lg focus:outline-none focus:border-blue-500"
                     placeholder="0.00"
                   />
+
+                  <p className="text-xs text-slate-500 mt-1">
+                    Se suma al costo base
+                  </p>
+                </div>
+
+                {/* PRECIO VENTA */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Precio de Venta *
+                  </label>
+
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) =>
+                      setManualPrice(parseFloat(e.target.value) || 0)
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 text-slate-900 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+
+                  <p className="text-xs text-slate-500 mt-1">
+                    (Costo + envío) × 1.40
+                  </p>
                 </div>
               </div>
             </div>

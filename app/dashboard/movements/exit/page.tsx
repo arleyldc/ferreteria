@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { recordStockExit } from "@/actions/movement.actions";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { getProductDetail } from "@/actions/product.actions";
 
 /**
  * Stock Exit Form - Record product sales and adjustments
@@ -22,6 +23,7 @@ export default function StockExitPage() {
   const [error, setError] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProductDetail, setSelectedProductDetail] = useState<any>(null);
   const [exitType, setExitType] = useState("VENTA");
   const [quantity, setQuantity] = useState("");
 
@@ -40,10 +42,14 @@ export default function StockExitPage() {
     }
   };
 
-  const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleProductChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const productId = e.target.value;
     const product = products.find((p) => p.id === productId);
+    const productDetail = await getProductDetail(productId);
     setSelectedProduct(product);
+    setSelectedProductDetail(productDetail.data);
     setQuantity("");
   };
 
@@ -71,8 +77,8 @@ export default function StockExitPage() {
         quantity: parseFloat(quantity),
         documentNumber: formData.get("documentNumber") as string,
         type: "EXIT",
-        subType: "",
-        unitUsed: "",
+        subType: exitType,
+        unitUsed: selectedProductDetail?.unitBase || "Unidad",
       });
 
       if (!result.success) {
@@ -80,7 +86,7 @@ export default function StockExitPage() {
         return;
       }
 
-      router.push("/movements/history");
+      router.push("/dashboard/movements/history");
     } catch (err: any) {
       setError(err.message || "Error al registrar salida de stock");
     } finally {

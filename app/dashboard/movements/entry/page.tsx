@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { recordStockEntry } from "@/actions/movement.actions";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { getProductDetail } from "@/actions/product.actions";
 
 /**
  * Stock Entry Form - Record product purchases
@@ -22,6 +23,7 @@ export default function StockEntryPage() {
   const [error, setError] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProductDetail, setSelectedProductDetail] = useState<any>(null);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
@@ -41,10 +43,14 @@ export default function StockEntryPage() {
     }
   };
 
-  const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleProductChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const productId = e.target.value;
     const product = products.find((p) => p.id === productId);
+    const productDetail = await getProductDetail(productId);
     setSelectedProduct(product);
+    setSelectedProductDetail(productDetail.data);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,15 +60,17 @@ export default function StockEntryPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-
+      const product = await getProductDetail(
+        formData.get("productId") as string,
+      );
       const result = await recordStockEntry({
         productId: formData.get("productId") as string,
         quantity: parseFloat(formData.get("quantity") as string),
         unitPrice: parseFloat(formData.get("unitPrice") as string),
         documentNumber: formData.get("documentNumber") as string,
         type: "ENTRY",
-        subType: "",
-        unitUsed: "",
+        subType: "PURCHASE",
+        unitUsed: product.data?.unitBase || "Unidad",
         reason: (formData.get("notes") as string) || undefined,
         customerName: (formData.get("supplier") as string) || undefined,
       });
@@ -72,7 +80,7 @@ export default function StockEntryPage() {
         return;
       }
 
-      router.push("/movements/history");
+      router.push("/dashboard/movements/history");
     } catch (err: any) {
       setError(err.message || "Error al registrar entrada de stock");
     } finally {
@@ -173,7 +181,7 @@ export default function StockEntryPage() {
                   <div>
                     <p className="text-slate-600">Unidad Base</p>
                     <p className="font-bold text-slate-900">
-                      {selectedProduct.baseUnit}
+                      {selectedProductDetail.unitBase}
                     </p>
                   </div>
                 </div>

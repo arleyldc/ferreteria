@@ -50,6 +50,7 @@ export async function createProduct(input: ProductInput): Promise<ApiResponse> {
         stockMin: validated.stockMin,
         stockCurrent: validated.stockCurrent || 0,
         costPriceAvg: validated.costPriceAvg || 0,
+        price: validated.price || 0,
         location: validated.location,
         imageUrl: validated.imageUrl,
       },
@@ -106,6 +107,7 @@ export async function updateProduct(
         costPriceAvg: validated.costPriceAvg,
         location: validated.location,
         imageUrl: validated.imageUrl,
+        price: validated.price,
       },
     });
 
@@ -246,12 +248,8 @@ export async function deleteProduct(productId: string): Promise<ApiResponse> {
     const movements = await prisma.inventoryMovement.findFirst({
       where: { productId },
     });
-
     if (movements) {
-      return {
-        success: false,
-        message: "Cannot delete product with movements",
-      };
+      await prisma.inventoryMovement.deleteMany({ where: { productId } });
     }
 
     await prisma.product.delete({
